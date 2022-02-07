@@ -1,0 +1,41 @@
+server:
+  port: 8080
+  reactive:
+    session:
+      timeout: 45000
+spring:
+  cloud.stream:
+    bindings:
+      input-in-0.destination: FaajiEventPayments
+      input-out-0.destination: FaajiPaymentTotals
+    kafka.streams:
+      binder:
+        auto-create-topics: false
+        configuration:
+          application.server: localhost:${server.port}
+          commit.interval.ms: 5000
+          default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+          default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+          spring.json.trusted.packages: '*'
+          spring.json.value.default.type: dev.faaji.streams.model.PaymentUpdateEvent
+#        serdeError: logAndContinue
+        functions:
+          input.applicationId: ${spring.application.name}-processor-1
+  kafka:
+    bootstrap-servers: pkc-41wq6.eu-west-2.aws.confluent.cloud:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+      security.protocol: SASL_SSL
+      sasl.mechanism: PLAIN
+    jaas:
+      enabled: true
+      login-module: org.apache.kafka.common.security.plain.PlainLoginModule
+      options:
+        username: ${CLUSTER_API_KEY}
+        password: ${CLUSTER_API_SECRET}
+    streams:
+      replication-factor: 3
+  application:
+    name: RealTimePayment
