@@ -160,6 +160,6 @@ public class PaymentAggregatorUnitTest extends AbstractKafkaStreamTest {
 
     private PaymentUpdateEvent createTestEvent(Events type, String userId, String eventId, BigDecimal amount) {
         return new PaymentUpdateEvent(type,
-                new Payment("REFERENCE", new Date().toString(), amount, "success", userId, eventId));
+                new Payment("REFERENCE", new Date().toString(),"paystack", amount, "success", userId, eventId));
     }
 }

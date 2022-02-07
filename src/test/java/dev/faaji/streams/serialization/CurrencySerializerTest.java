@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class CurrencySerializerTest {
 
     @Test
@@ -17,6 +15,7 @@ class CurrencySerializerTest {
         Payment payment = new Payment(
                 "",
                 "",
+                "paystack",
                 new BigDecimal("325.5"),
                 "success",
                 UUID.randomUUID().toString(),

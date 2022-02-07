@@ -33,7 +33,7 @@ public abstract class AbstractPaymentEventGenerator {
         // TODO do something to clear existing state for materialised view
         accumulatedTotalCounts.keySet().forEach(key -> {
             var event = new PaymentUpdateEvent(Events.REPLACE,
-                    new Payment("RESET_EVENT", new Date().toString(), BigDecimal.ZERO, "success", null, key));
+                    new Payment("RESET_EVENT", new Date().toString(), "paystack",BigDecimal.ZERO, "success", null, key));
             sendEvent(key, event);
         });
         accumulatedTotalCounts.clear();
@@ -59,6 +59,7 @@ public abstract class AbstractPaymentEventGenerator {
                         actions[random.nextInt(actions.length)],
                         new Payment(UUID.randomUUID().toString(),
                                 new Date().toString(),
+                                "paystack",
                                 new BigDecimal(values[random.nextInt(values.length)]),
                                 "success",
                                 userId, eventId));
