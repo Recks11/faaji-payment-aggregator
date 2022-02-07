@@ -37,6 +37,7 @@ public class Bench {
                     new Payment(
                             "t7QpJEHXrB",
                             "2020-12-22T09:41:41.245Z",
+                            "paystack",
                             options[random.nextInt(options.length)],
                             "success",
                             "5fe1c197f1cc6a00176200c6",
