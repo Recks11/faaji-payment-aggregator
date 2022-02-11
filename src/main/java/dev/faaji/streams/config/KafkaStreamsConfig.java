@@ -1,31 +1,22 @@
 package dev.faaji.streams.config;
 
-import dev.faaji.streams.service.bindings.StreamBindings;
-import org.apache.kafka.clients.admin.NewTopic;
-import org.springframework.cloud.stream.binder.kafka.streams.properties.KafkaStreamsBinderConfigurationProperties;
+import dev.faaji.streams.api.v1.domain.PartyModificationEvent;
+import dev.faaji.streams.api.v1.domain.ValentineUserRegistration;
+import org.apache.kafka.common.serialization.Serde;
 import org.springframework.context.annotation.Bean;
-import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
-import org.springframework.kafka.config.KafkaStreamsConfiguration;
-import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.support.serializer.JsonSerde;
 
-import java.util.Map;
-
-//@Configuration
-//@EnableKafkaStreams
+@Configuration
 public class KafkaStreamsConfig {
 
-    @Bean(KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
-    public KafkaStreamsConfiguration streamsConfiguration(KafkaStreamsBinderConfigurationProperties properties) {
-        var props = properties.getConfiguration();
-        return new KafkaStreamsConfiguration(Map.copyOf(props));
+    @Bean
+    public static Serde<PartyModificationEvent> PartySerde() {
+        return new JsonSerde<>(PartyModificationEvent.class);
     }
 
     @Bean
-    public NewTopic tableTopic() {
-        return TopicBuilder.name(StreamBindings.INPUT_BINDING_OUT_DESTINATION)
-                .partitions(2)
-                .compact()
-                .config("max.message.bytes", "2048")
-                .build();
+    public static Serde<ValentineUserRegistration> UserRegSerde() {
+        return new JsonSerde<>(ValentineUserRegistration.class);
     }
 }

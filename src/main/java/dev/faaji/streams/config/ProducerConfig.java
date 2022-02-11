@@ -11,7 +11,7 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.Map;
 
-//@Configuration
+@Configuration
 public class ProducerConfig {
 
     private final KafkaProperties kafkaProperties;
