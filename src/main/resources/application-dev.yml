@@ -25,7 +25,7 @@ spring:
         binder:
           auto-create-topics: false
           configuration:
-            application.server: localhost:${server.port}
+            application.server: faaji-stream-processor.herokuapp.com
             commit.interval.ms: 5000
             default.list.value.serde.inner: org.apache.kafka.common.serialization.Serdes$StringSerde
             default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde

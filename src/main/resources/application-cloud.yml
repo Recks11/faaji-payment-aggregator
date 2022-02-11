@@ -32,7 +32,7 @@ spring:
       enabled: true
       login-module: org.apache.kafka.common.security.plain.PlainLoginModule
       options:
-        username: ${CLUSTER_API_KEY}
-        password: ${CLUSTER_API_SECRET}
+        username: WEJF3QXRFYAUHHOZ
+        password: ydu4LXRdXbHiMsldQL8U5ma0monMvb1MvTFbD9/W6h9W4J8DV+vzhgINcj6hqnsE
     streams:
       replication-factor: 3
