@@ -50,6 +50,7 @@ public class Bench {
             var event = new ValentineUserRegistration(
                     "DUMMY_USER-%s".formatted(random.nextInt(100)),
                     new String[]{UUID.randomUUID().toString().substring(0, 4), UUID.randomUUID().toString().substring(0, 4)},
+                    "non-binary",
                     "9qwyfibaoeeqr77"
             );
             producer.send("valentine-user-registration", event.eventId(), event);

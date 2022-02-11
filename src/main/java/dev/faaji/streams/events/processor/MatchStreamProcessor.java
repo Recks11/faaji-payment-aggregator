@@ -51,7 +51,10 @@ public class MatchStreamProcessor {
     @Bean("userregister")
     public Function<KStream<String, ValentineUserRegistration>, KTable<String, List<String>>> eventUpdateStream() {
         return partyModificationEvent -> partyModificationEvent
-                .map((key, event) -> new KeyValue<>(String.valueOf(event.eventId()), List.of(event.userId())))
+                .map((key, event) -> {
+                    var gender = event.gender() != null ? event.gender() : "non-binary";
+                    return new KeyValue<>(String.valueOf(event.eventId()), List.of("%s:%s".formatted(event.userId(), gender)));
+                })
                 .groupByKey(Grouped.with(Serdes.String(), new ArrayListSerde<>()))
                 .reduce((ev, nextEv) -> {
                     List<String> event = new ArrayList<>(ev);
