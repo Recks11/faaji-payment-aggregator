@@ -18,8 +18,8 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-@Component
-@EnableScheduling
+//@Component
+//@EnableScheduling
 public class Bench {
     private static final
     Logger LOG = LoggerFactory.getLogger(Bench.class);
