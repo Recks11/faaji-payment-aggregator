@@ -65,7 +65,7 @@ public class PaymentApiEndpoint {
                             return ServerResponse.ok()
                                     .bodyValue(new EventResponse<>(userId, data));
                         })
-                        .POST("/event/{eventId}/start", request -> {
+                        .POST("/start/{eventId}", request -> {
                             var eventId = request.pathVariable("eventId");
                             var queue = getMatchQueue(eventId);
                             processor.setMatchMatrix(queue, eventId);

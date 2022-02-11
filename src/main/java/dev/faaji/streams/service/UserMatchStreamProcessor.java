@@ -22,8 +22,12 @@ public class UserMatchStreamProcessor {
     public List<UserMatch> getRound(List<User> availableUsers, String eventId, int round) {
         List<UserMatch> result = new ArrayList<>();
         while (round > 0) {
-            result = createMatchQueue(availableUsers, eventId);
-            round--;
+            try {
+                result = createMatchQueue(availableUsers, eventId);
+                round--;
+            } catch (Exception e) {
+                break;
+            }
         }
         return result;
     }
@@ -44,7 +48,7 @@ public class UserMatchStreamProcessor {
             SortedSet<UserMatch> userMatch = eventMap.get(userId);
 
             for (UserMatch match : userMatch) {
-            var matchId = createIdForEvent(match.userId(), eventId);
+                var matchId = createIdForEvent(match.userId(), eventId);
                 if (availableIds.contains(match.userId())) {
                     availableIds.remove(match.userId());
                     availableIds.remove(user.id());
