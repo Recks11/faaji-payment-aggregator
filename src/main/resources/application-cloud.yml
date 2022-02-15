@@ -1,25 +1,45 @@
 server:
-  port: ${PORT}
+  port: 8080
   reactive:
     session:
       timeout: 45000
 spring:
-  cloud.stream:
-    bindings:
-      input-in-0.destination: ${IN_TOPIC}
-      input-out-0.destination: ${OUT_TOPIC}
-    kafka.streams:
-      binder:
-        auto-create-topics: false
-        configuration:
-          application.server: localhost:${server.port}
-          commit.interval.ms: 5000
-          default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-          default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
-          spring.json.trusted.packages: '*'
-          spring.json.value.default.type: dev.faaji.streams.model.PaymentUpdateEvent
-        functions:
-          input.applicationId: ${spring.application.name}-processor-1
+  cloud:
+    stream:
+      bindings:
+        input-in-0.destination: FaajiEventPayments
+        input-out-0.destination: FaajiPaymentTotals
+        partyinit-in-0:
+          consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$PartySerde
+          destination: valentine-events
+        partyinit-out-0.destination: valentine-events-index
+        userregister-in-0:
+          consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
+          destination: valentine-user-registration
+        userregister-out-0.destination: valentine-event-index
+        userinterest-in-0:
+          consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
+          destination: valentine-user-registration
+        userinterest-out-0.destination: valentine-user-index
+      kafka.streams:
+        binder:
+          auto-create-topics: false
+          configuration:
+            application.server: ${APPLICATION_SERVER}
+            commit.interval.ms: 5000
+            default.list.value.serde.inner: org.apache.kafka.common.serialization.Serdes$StringSerde
+            default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+            default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+            spring.json.trusted.packages: '*'
+          #            spring.json.value.default.type: dev.faaji.streams.model.PaymentUpdateEvent
+          #        serdeError: logAndContinue
+          functions:
+            input.applicationId: ${spring.application.name}-processor-1
+            partyinit.applicationId: ${spring.application.name}-processor-2
+            userregister.applicationId: ${spring.application.name}-processor-3
+            userinterest.applicationId: ${spring.application.name}-processor-4
+    function:
+      definition: partyinit;userregister;userinterest;input
   kafka:
     bootstrap-servers: pkc-41wq6.eu-west-2.aws.confluent.cloud:9092
     producer:
@@ -32,7 +52,9 @@ spring:
       enabled: true
       login-module: org.apache.kafka.common.security.plain.PlainLoginModule
       options:
-        username: WEJF3QXRFYAUHHOZ
-        password: ydu4LXRdXbHiMsldQL8U5ma0monMvb1MvTFbD9/W6h9W4J8DV+vzhgINcj6hqnsE
+        username: ${CLUSTER_API_KEY}
+        password: ${CLUSTER_API_SECRET}
     streams:
       replication-factor: 3
+  application:
+    name: PaymentStreamProcessor

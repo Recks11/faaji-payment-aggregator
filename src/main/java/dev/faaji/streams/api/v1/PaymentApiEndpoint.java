@@ -5,13 +5,14 @@ import dev.faaji.streams.api.v1.domain.UserMatch;
 import dev.faaji.streams.model.TotalView;
 import dev.faaji.streams.service.UserMatchStreamProcessor;
 import dev.faaji.streams.service.bindings.StreamBindings;
+import org.apache.kafka.streams.errors.InvalidStateStoreException;
+import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.binder.kafka.streams.InteractiveQueryService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -53,7 +54,7 @@ public class PaymentApiEndpoint {
                             return ServerResponse.ok()
                                     .body(event, TotalView.class);
                         })
-                        .GET("/find/{eventId}", request -> {
+                        .GET("/event/{eventId}", request -> {
                             var eventId = request.pathVariable("eventId");
                             return ServerResponse.ok()
                                     .bodyValue(new EventResponse<>(eventId, getMatchQueue(eventId)));
@@ -65,13 +66,13 @@ public class PaymentApiEndpoint {
                             return ServerResponse.ok()
                                     .bodyValue(new EventResponse<>(userId, data));
                         })
-                        .POST("/start/{eventId}", request -> {
+                        .POST("/event/{eventId}/start", request -> {
                             var eventId = request.pathVariable("eventId");
                             var queue = getMatchQueue(eventId);
                             processor.setMatchMatrix(queue, eventId);
                             return ServerResponse.ok().build();
                         })
-                        .GET("/event/{eventId}/{round}", request -> {
+                        .GET("/event/{eventId}/start/{round}", request -> {
                             var eventId = request.pathVariable("eventId");
                             var round = Integer.parseInt(request.pathVariable("round"));
                             List<UserMatch> matchQueue = processor.getRound(getMatchQueue(eventId), eventId, round);
@@ -82,13 +83,17 @@ public class PaymentApiEndpoint {
     }
 
     private <K, V> ReadOnlyKeyValueStore<K, V> getQueryableStore(String name) {
-        return queryService.getQueryableStore(name, QueryableStoreTypes.keyValueStore());
+        try {
+            return queryService.getQueryableStore(name, QueryableStoreTypes.keyValueStore());
+        } catch (InvalidStateStoreException ex) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "The requested resource is being prepared");
+        }
     }
 
     private List<User> getMatchQueue(String eventId) {
         ReadOnlyKeyValueStore<String, List<String>> store = getQueryableStore(EVENT_ATTENDEE_STORE);
         ReadOnlyKeyValueStore<String, List<String>> interestStore = getQueryableStore(USER_INTEREST_STORE);
-        List<String> data = Optional.ofNullable(store.get(eventId)).orElse(List.of("none"));
+        List<String> data = Optional.ofNullable(store.get(eventId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "data not found"));
         return data.stream().map(dt -> {
             var userData = dt.split(":");
             var in = interestStore.get("%s:%s".formatted(eventId, userData[0]));
