@@ -6,7 +6,6 @@ import dev.faaji.streams.model.TotalView;
 import dev.faaji.streams.service.UserMatchStreamProcessor;
 import dev.faaji.streams.service.bindings.StreamBindings;
 import org.apache.kafka.streams.errors.InvalidStateStoreException;
-import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +32,11 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class PaymentApiEndpoint {
 
     private final InteractiveQueryService queryService;
-    @Autowired
-    UserMatchStreamProcessor processor;
+    private final UserMatchStreamProcessor processor;
 
-    public PaymentApiEndpoint(InteractiveQueryService queryService) {
+    public PaymentApiEndpoint(InteractiveQueryService queryService, UserMatchStreamProcessor processor) {
         this.queryService = queryService;
+        this.processor = processor;
     }
 
     @Bean
@@ -56,15 +55,16 @@ public class PaymentApiEndpoint {
                         })
                         .GET("/event/{eventId}", request -> {
                             var eventId = request.pathVariable("eventId");
+                            var queue = getMatchQueue(eventId);
                             return ServerResponse.ok()
-                                    .bodyValue(new EventResponse<>(eventId, getMatchQueue(eventId)));
+                                    .bodyValue(EventResponse.withMetadata(eventId, queue, Map.of("size", queue.size())));
                         })
                         .GET("/user/{id}", request -> {
                             var userId = request.pathVariable("id");
                             ReadOnlyKeyValueStore<String, List<String>> store = getQueryableStore(USER_INTEREST_STORE);
                             List<String> data = Optional.ofNullable(store.get(userId)).orElse(List.of("none"));
                             return ServerResponse.ok()
-                                    .bodyValue(new EventResponse<>(userId, data));
+                                    .bodyValue(EventResponse.from(userId, data));
                         })
                         .POST("/event/{eventId}/start", request -> {
                             var eventId = request.pathVariable("eventId");

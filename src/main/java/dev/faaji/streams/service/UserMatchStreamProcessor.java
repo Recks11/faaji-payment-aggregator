@@ -52,8 +52,8 @@ public class UserMatchStreamProcessor {
                 if (availableIds.contains(match.userId())) {
                     availableIds.remove(match.userId());
                     availableIds.remove(user.id());
-                    result.add(new UserMatch(user.id(), match.userId(), 0));
-                    result.add(new UserMatch(match.userId(), user.id(), 0));
+                    result.add(new UserMatch(user.id(), match.userId(), match.totalCommonInterests()));
+                    result.add(new UserMatch(match.userId(), user.id(), match.totalCommonInterests()));
                     userMatch.remove(match);
                     eventMap.replace(userId, userMatch);
                     var otherSet = eventMap.get(matchId).stream()
