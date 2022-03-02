@@ -7,7 +7,9 @@ spring:
   cloud:
     stream:
       bindings:
-        input-in-0.destination: FaajiEventPayments
+        input-in-0:
+          consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$PaymentUpdateSerde
+          destination: FaajiEventPayments
         input-out-0.destination: FaajiPaymentTotals
         partyinit-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$PartySerde
