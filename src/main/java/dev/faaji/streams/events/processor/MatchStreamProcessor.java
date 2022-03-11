@@ -1,7 +1,7 @@
 package dev.faaji.streams.events.processor;
 
 import dev.faaji.streams.api.v1.domain.PartyModificationEvent;
-import dev.faaji.streams.api.v1.domain.ValentineUserRegistration;
+import dev.faaji.streams.api.v1.domain.UserRegistration;
 import dev.faaji.streams.serialization.ArrayListSerde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
@@ -49,7 +49,7 @@ public class MatchStreamProcessor {
 
     // stores users into the Event Attendee store, indexed by event.
     @Bean("userregister")
-    public Function<KStream<String, ValentineUserRegistration>, KTable<String, List<String>>> eventUpdateStream() {
+    public Function<KStream<String, UserRegistration>, KTable<String, List<String>>> eventUpdateStream() {
         return partyModificationEvent -> partyModificationEvent
                 .map((key, event) -> {
                     var gender = event.gender() != null ? event.gender() : "non-binary";
@@ -66,15 +66,19 @@ public class MatchStreamProcessor {
     }
 
     @Bean("userinterest")
-    public Function<KStream<String, ValentineUserRegistration>, KTable<String, List<String>>> userRegistrationStream() {
+    public Function<KStream<String, UserRegistration>, KTable<String, List<String>>> userRegistrationStream() {
         return event -> event.map((eventId, registration) -> {
             String scopedUserKey = "%s:%s".formatted(registration.eventId(), registration.userId());
-            var inters = registration.interests() == null ? List.<String>of() : Arrays.asList(registration.interests());
+            var inters = convertToList(registration.interests());
             return new KeyValue<>(scopedUserKey, inters);
         }).toTable(Named.as("user-interest-processor"),
                 Materialized.<String, List<String>, KeyValueStore<Bytes, byte[]>>as(USER_INTEREST_STORE)
                 .withValueSerde(new ArrayListSerde<>())
                 .withKeySerde(Serdes.String()));
+    }
+
+    private <T> List<T> convertToList(T[] array) {
+        return array == null ? List.of() : Arrays.asList(array);
     }
 
 }

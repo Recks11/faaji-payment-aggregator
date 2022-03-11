@@ -2,23 +2,14 @@ package dev.faaji.streams.auto;
 
 import dev.faaji.streams.api.v1.domain.PartyModification;
 import dev.faaji.streams.api.v1.domain.PartyModificationEvent;
-import dev.faaji.streams.api.v1.domain.ValentineUserRegistration;
-import dev.faaji.streams.model.Events;
-import dev.faaji.streams.model.Payment;
-import dev.faaji.streams.model.PaymentUpdateEvent;
-import dev.faaji.streams.service.bindings.StreamBindings;
+import dev.faaji.streams.api.v1.domain.UserRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 //@Component
 //@EnableScheduling
@@ -60,7 +51,7 @@ public class Bench {
     public void produceUserData() {
         var random = new Random();
         try {
-            var event = new ValentineUserRegistration(
+            var event = new UserRegistration(
                     "DUMMY_USER-%s".formatted(random.nextInt(100)),
                     new String[]{UUID.randomUUID().toString().substring(0, 4), UUID.randomUUID().toString().substring(0, 4)},
                     "non-binary",

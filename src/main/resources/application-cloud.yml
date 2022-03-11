@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT}
   reactive:
     session:
       timeout: 45000
@@ -10,7 +10,8 @@ spring:
         input-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$PaymentUpdateSerde
           destination: FaajiEventPayments
-        input-out-0.destination: FaajiPaymentTotals
+        input-out-0:
+          destination: FaajiPaymentTotals
         partyinit-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$PartySerde
           destination: valentine-events
@@ -22,7 +23,13 @@ spring:
         userinterest-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
           destination: valentine-user-registration
-        userinterest-out-0.destination: valentine-user-index
+        userinterest-out-0:
+          destination: valentine-user-index
+        room-recommender-in-0:
+          consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
+          destination: FaajiEventRegistration
+        room-recommender-out-0:
+          destination: FaajiUserRooms
       kafka.streams:
         binder:
           auto-create-topics: false

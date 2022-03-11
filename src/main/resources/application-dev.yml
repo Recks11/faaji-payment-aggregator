@@ -23,6 +23,9 @@ spring:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
           destination: valentine-user-registration
         userinterest-out-0.destination: valentine-user-index
+        room-recommender-in-0:
+          consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
+          destination: UserRooms
       kafka.streams:
         binder:
           auto-create-topics: false
