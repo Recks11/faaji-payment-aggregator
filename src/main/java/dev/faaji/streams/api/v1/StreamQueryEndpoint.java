@@ -4,7 +4,6 @@ import dev.faaji.streams.api.v1.domain.User;
 import dev.faaji.streams.api.v1.domain.UserMatch;
 import dev.faaji.streams.api.v1.response.ErrorResponse;
 import dev.faaji.streams.api.v1.response.RoomRecommendationResponse;
-import dev.faaji.streams.model.TotalView;
 import dev.faaji.streams.service.UserMatchStreamProcessor;
 import dev.faaji.streams.service.bindings.StreamBindings;
 import dev.faaji.streams.util.KeyUtils;
@@ -87,7 +86,9 @@ public class StreamQueryEndpoint {
                             String key = KeyUtils.merge(eventId, userOp.get());
                             var mono = getStoreMono(USER_ROOM_STORE)
                                     .flatMap(store -> Mono.justOrEmpty(store.get(key)))
-                                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "user room not found")));
+                                    .switchIfEmpty(Mono.error(Exceptions.propagate(
+                                            new ResponseStatusException(HttpStatus.NOT_FOUND, "user room not found")
+                                    )));
 
                             return ServerResponse.ok().body(mono, RoomRecommendationResponse.class);
                         })
@@ -110,7 +111,7 @@ public class StreamQueryEndpoint {
         try {
             return queryService.getQueryableStore(name, QueryableStoreTypes.keyValueStore());
         } catch (InvalidStateStoreException ex) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "The requested resource is being prepared");
+            throw Exceptions.propagate(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "The requested resource is being prepared"));
         }
     }
 
@@ -121,7 +122,7 @@ public class StreamQueryEndpoint {
                 sink.success(store);
             } catch (Exception ex) {
                 LOG.error("Failed to resolve store", ex);
-                sink.error(ex);
+                sink.error(Exceptions.propagate(ex));
             }
         });
     }
