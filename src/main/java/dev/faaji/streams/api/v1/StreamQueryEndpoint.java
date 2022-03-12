@@ -49,13 +49,10 @@ public class StreamQueryEndpoint {
                 .path("/api/v1", base -> base
                         .GET("/payment/{eventId}", request -> {
                             var eventId = request.pathVariable("eventId");
-                            ReadOnlyKeyValueStore<String, TotalView> store = queryService.getQueryableStore(
-                                    StreamBindings.PAYMENT_TOTAL_STATE_STORE, QueryableStoreTypes.keyValueStore());
-                            Mono<TotalView> event = Mono.fromCallable(() -> store.get(eventId))
-                                    .switchIfEmpty(Mono.error(Exceptions.propagate(new ResponseStatusException(HttpStatus.NOT_FOUND, "Event Not Found"))));
-
-                            return ServerResponse.ok()
-                                    .body(event, TotalView.class);
+                            return getStoreMono(StreamBindings.PAYMENT_TOTAL_STATE_STORE)
+                                    .flatMap(store -> Mono.justOrEmpty(store.get(eventId)))
+                                    .switchIfEmpty(Mono.error(Exceptions.propagate(new ResponseStatusException(HttpStatus.NOT_FOUND, "Event Not Found"))))
+                                    .flatMap((event) -> ServerResponse.ok().bodyValue(event));
                         })
                         .GET("/event/{eventId}", request -> {
                             var eventId = request.pathVariable("eventId");
@@ -88,8 +85,8 @@ public class StreamQueryEndpoint {
 
                             if (userOp.isEmpty()) return ServerResponse.badRequest().build();
                             String key = KeyUtils.merge(eventId, userOp.get());
-                            var mono = Mono.fromCallable(() -> getQueryableStore(USER_ROOM_STORE))
-                                    .map(store -> store.get(key))
+                            var mono = getStoreMono(USER_ROOM_STORE)
+                                    .flatMap(store -> Mono.justOrEmpty(store.get(key)))
                                     .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "user room not found")))
                                     .onErrorResume(throwable -> Mono.error(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "error getting data from store", throwable)));
 
@@ -116,6 +113,18 @@ public class StreamQueryEndpoint {
         } catch (InvalidStateStoreException ex) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "The requested resource is being prepared");
         }
+    }
+
+    private <K, V> Mono<ReadOnlyKeyValueStore<K, V>> getStoreMono(String name) {
+        return Mono.create(sink -> {
+            try {
+                var store = this.<K, V>getQueryableStore(name);
+                sink.success(store);
+            } catch (Exception ex) {
+                LOG.error("Failed to resolve store", ex);
+                sink.error(ex);
+            }
+        });
     }
 
     private List<User> getMatchQueue(String eventId) {
