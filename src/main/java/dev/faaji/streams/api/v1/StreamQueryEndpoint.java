@@ -90,7 +90,8 @@ public class StreamQueryEndpoint {
                             String key = KeyUtils.merge(eventId, userOp.get());
                             var mono = Mono.fromCallable(() -> getQueryableStore(USER_ROOM_STORE))
                                     .map(store -> store.get(key))
-                                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "user room not found")));
+                                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "user room not found")))
+                                    .onErrorResume(throwable -> Mono.error(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "error getting data from store", throwable)));
 
                             return ServerResponse.ok().body(mono, RoomRecommendationResponse.class);
                         })
@@ -103,6 +104,8 @@ public class StreamQueryEndpoint {
     private Mono<ServerResponse> handleError(ResponseStatusException exception, ServerRequest request) {
         var errResponse = new ErrorResponse(exception.getRawStatusCode(), exception.getReason(), request.uri().toString());
         LOG.error("an error occurred while handling request: %s".formatted(errResponse));
+        if (exception.getCause() != null) LOG.error(exception.getReason(), exception);
+
         return ServerResponse.status(exception.getStatus())
                 .bodyValue(errResponse);
     }
