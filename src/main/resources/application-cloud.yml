@@ -67,3 +67,7 @@ spring:
       replication-factor: 3
   application:
     name: PaymentStreamProcessor
+
+faaji:
+  api:
+    url: ${FAAJI_API_URL}

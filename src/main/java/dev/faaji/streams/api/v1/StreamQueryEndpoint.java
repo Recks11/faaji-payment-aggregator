@@ -2,19 +2,24 @@ package dev.faaji.streams.api.v1;
 
 import dev.faaji.streams.api.v1.domain.User;
 import dev.faaji.streams.api.v1.domain.UserMatch;
+import dev.faaji.streams.api.v1.response.ErrorResponse;
+import dev.faaji.streams.api.v1.response.RoomRecommendationResponse;
 import dev.faaji.streams.model.TotalView;
 import dev.faaji.streams.service.UserMatchStreamProcessor;
 import dev.faaji.streams.service.bindings.StreamBindings;
+import dev.faaji.streams.util.KeyUtils;
 import org.apache.kafka.streams.errors.InvalidStateStoreException;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.stream.binder.kafka.streams.InteractiveQueryService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.Exceptions;
@@ -24,17 +29,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static dev.faaji.streams.service.bindings.MaterialBinding.EVENT_ATTENDEE_STORE;
-import static dev.faaji.streams.service.bindings.MaterialBinding.USER_INTEREST_STORE;
+import static dev.faaji.streams.service.bindings.MaterialBinding.*;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
-public class PaymentApiEndpoint {
-
+public class StreamQueryEndpoint {
+    private static final Logger LOG = LoggerFactory.getLogger(StreamQueryEndpoint.class);
     private final InteractiveQueryService queryService;
     private final UserMatchStreamProcessor processor;
 
-    public PaymentApiEndpoint(InteractiveQueryService queryService, UserMatchStreamProcessor processor) {
+    public StreamQueryEndpoint(InteractiveQueryService queryService, UserMatchStreamProcessor processor) {
         this.queryService = queryService;
         this.processor = processor;
     }
@@ -78,8 +82,29 @@ public class PaymentApiEndpoint {
                             List<UserMatch> matchQueue = processor.getRound(getMatchQueue(eventId), eventId, round);
                             return ServerResponse.ok().bodyValue(matchQueue);
                         })
-                ).route(RequestPredicates.all(), request -> ServerResponse.status(HttpStatus.FORBIDDEN).build()).build();
+                        .GET("/rooms/{eventId}/", request -> {
+                            var eventId = request.pathVariable("eventId");
+                            var userOp = request.queryParam("userId");
 
+                            if (userOp.isEmpty()) return ServerResponse.badRequest().build();
+                            String key = KeyUtils.merge(eventId, userOp.get());
+                            var mono = Mono.fromCallable(() -> getQueryableStore(USER_ROOM_STORE))
+                                    .map(store -> store.get(key))
+                                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "user room not found")));
+
+                            return ServerResponse.ok().body(mono, RoomRecommendationResponse.class);
+                        })
+                ).route(RequestPredicates.all(), request -> ServerResponse.status(HttpStatus.FORBIDDEN).build())
+                .onError(ResponseStatusException.class, this::handleError)
+                .build();
+
+    }
+
+    private Mono<ServerResponse> handleError(ResponseStatusException exception, ServerRequest request) {
+        var errResponse = new ErrorResponse(exception.getRawStatusCode(), exception.getReason(), request.uri().toString());
+        LOG.error("an error occurred while handling request: %s".formatted(errResponse));
+        return ServerResponse.status(exception.getStatus())
+                .bodyValue(errResponse);
     }
 
     private <K, V> ReadOnlyKeyValueStore<K, V> getQueryableStore(String name) {
