@@ -94,8 +94,8 @@ public class StreamQueryEndpoint {
 
                             return ServerResponse.ok().body(mono, RoomRecommendationResponse.class);
                         })
-                ).route(RequestPredicates.all(), request -> ServerResponse.status(HttpStatus.FORBIDDEN).build())
-                .onError(ResponseStatusException.class, this::handleError)
+                ).onError(ResponseStatusException.class, this::handleError)
+                .route(RequestPredicates.all(), request -> ServerResponse.status(HttpStatus.FORBIDDEN).build())
                 .build();
 
     }
