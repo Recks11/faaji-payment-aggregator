@@ -87,7 +87,9 @@ public class StreamQueryEndpoint {
                             String key = KeyUtils.merge(eventId, userOp.get());
                             var mono = getStoreMono(USER_ROOM_STORE)
                                     .flatMap(store -> Mono.justOrEmpty(store.get(key)))
-                                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "user room not found")));
+                                    .switchIfEmpty(Mono.error(Exceptions.propagate(
+                                            new ResponseStatusException(HttpStatus.NOT_FOUND, "user room not found")
+                                    )));
 
                             return ServerResponse.ok().body(mono, RoomRecommendationResponse.class);
                         })
