@@ -48,7 +48,7 @@ spring:
             userregister.applicationId: ${spring.application.name}-processor-3
             userinterest.applicationId: ${spring.application.name}-processor-4
     function:
-      definition: partyinit;userregister;userinterest;input
+      definition: partyinit;userregister;userinterest;input;room-recommender
   kafka:
     bootstrap-servers: ${KAFKA_SERVER}
     producer:
