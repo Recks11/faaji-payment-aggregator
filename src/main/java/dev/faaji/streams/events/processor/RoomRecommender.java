@@ -30,6 +30,7 @@ import static dev.faaji.streams.service.bindings.StreamBindings.ROOM_RECOMMENDER
 public class RoomRecommender {
     private static final Logger LOG = LoggerFactory.getLogger(RoomRecommender.class);
     public static final String RECOMMENDER_TABLE_NAME = "user-rooms";
+    public static final String NO_ROOM = "NONE";
     private final Serde<RoomRecommendationResponse> roomSerde;
     private final WebClient webClient;
 
@@ -55,9 +56,10 @@ public class RoomRecommender {
     }
 
     private String recommendRoom(String[] userInterests, FaajiRoom[] rooms) {
+        if (rooms.length == 0) return NO_ROOM;
         Set<String> userInterest = new HashSet<>(Set.of(userInterests));
 
-        String recommended = "NONE";
+        String recommended = NO_ROOM;
         int previousTotal = 0;
         for (FaajiRoom room : rooms) {
             int totalCommon = 0;
@@ -71,7 +73,7 @@ public class RoomRecommender {
             }
         }
 
-        if (recommended.equals("NONE")) {
+        if (recommended.equals(NO_ROOM)) {
             int index = new Random().nextInt(rooms.length);
             recommended = rooms[index].roomId();
         }
