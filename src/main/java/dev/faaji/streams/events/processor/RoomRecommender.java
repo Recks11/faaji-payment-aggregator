@@ -43,7 +43,7 @@ public class RoomRecommender {
     public Function<KStream<String, UserRegistration>, KTable<String, RoomRecommendationResponse>> recommendRoom() {
         return userStream -> userStream.map((key, userRegistration) -> {
             LOG.info("recommending room for user %s".formatted(userRegistration.userId()));
-            String room = recommendRoom(userRegistration.interests(), getRoomsForEvent());
+            String room = recommendRoom(userRegistration.interests(), getRoomsForEvent(userRegistration.eventId()));
             String updatedKey = KeyUtils.merge(userRegistration.eventId(), userRegistration.userId());
             return new KeyValue<>(updatedKey, new RoomRecommendationResponse(
                     userRegistration.userId(),
@@ -69,21 +69,21 @@ public class RoomRecommender {
 
             if (totalCommon > previousTotal) {
                 previousTotal = totalCommon;
-                recommended = room.roomId();
+                recommended = room.id();
             }
         }
 
         if (recommended.equals(NO_ROOM)) {
             int index = new Random().nextInt(rooms.length);
-            recommended = rooms[index].roomId();
+            recommended = rooms[index].id();
         }
 
         return recommended;
     }
 
-    private FaajiRoom[] getRoomsForEvent() {
+    private FaajiRoom[] getRoomsForEvent(String eventId) {
         return webClient.get()
-                .uri("/interests")
+                .uri("/rooms?eventId=%s".formatted(eventId))
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<FaajiRoom[]>() {})
                 .onErrorReturn(new FaajiRoom[0])
