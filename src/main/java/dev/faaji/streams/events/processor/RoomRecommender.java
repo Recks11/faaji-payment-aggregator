@@ -21,10 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 import static dev.faaji.streams.service.bindings.MaterialBinding.USER_ROOM_STORE;
@@ -46,6 +43,7 @@ public class RoomRecommender {
     @Bean(ROOM_RECOMMENDER)
     public Function<KStream<String, UserRegistration>, KTable<String, RoomRecommendationResponse>> recommendRoom() {
         return userStream -> userStream.map((key, userRegistration) -> {
+            LOG.info("recieved user %s".formatted(userRegistration));
             LOG.info("recommending room for user %s".formatted(userRegistration.userId()));
             String room = recommendRoom(userRegistration.interests(), getRoomsForEvent(userRegistration.eventId()));
             String updatedKey = KeyUtils.merge(userRegistration.eventId(), userRegistration.userId());
@@ -86,16 +84,21 @@ public class RoomRecommender {
     }
 
     private FaajiRoom[] getRoomsForEvent(String eventId) {
-        FaajiRoom[] rooms = webClient.get()
+        LOG.info("finding rooms for event {}", eventId);
+        List<FaajiRoom> partyId = webClient.get()
                 .uri(new DefaultUriBuilderFactory().builder().path("/rooms")
                         .queryParam("partyId", eventId)
                         .build())
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<FaajiRoom[]>() {
-                })
-                .onErrorReturn(new FaajiRoom[0])
-                .doOnError(throwable -> LOG.error("error fetching rooms: {}",throwable.getMessage()))
+                .exchangeToFlux(clientResponse -> clientResponse.bodyToFlux(FaajiRoom.class))
+                .doOnError(throwable -> LOG.error("error fetching rooms: {}", throwable.getMessage()))
+                .collectList()
+                .onErrorReturn(List.of())
                 .block();
+        if (partyId == null) {
+            LOG.info("could not find rooms");
+            return new FaajiRoom[0];
+        }
+        FaajiRoom[] rooms = partyId.toArray(new FaajiRoom[0]);
         LOG.info("found rooms {}", Arrays.toString(rooms));
         return rooms;
     }
