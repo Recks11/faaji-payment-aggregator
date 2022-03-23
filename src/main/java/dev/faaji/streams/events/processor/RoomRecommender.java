@@ -19,8 +19,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
 import java.util.function.Function;
 
 import static dev.faaji.streams.service.bindings.MaterialBinding.USER_ROOM_STORE;
@@ -82,11 +86,17 @@ public class RoomRecommender {
     }
 
     private FaajiRoom[] getRoomsForEvent(String eventId) {
-        return webClient.get()
-                .uri("/rooms?partyId=%s".formatted(eventId))
+        FaajiRoom[] rooms = webClient.get()
+                .uri(new DefaultUriBuilderFactory().builder().path("/rooms")
+                        .queryParam("partyId", eventId)
+                        .build())
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<FaajiRoom[]>() {})
+                .bodyToMono(new ParameterizedTypeReference<FaajiRoom[]>() {
+                })
                 .onErrorReturn(new FaajiRoom[0])
+                .doOnError(throwable -> LOG.error("error fetching rooms: {}",throwable.getMessage()))
                 .block();
+        LOG.info("found rooms {}", Arrays.toString(rooms));
+        return rooms;
     }
 }
