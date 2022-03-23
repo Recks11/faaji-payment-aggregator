@@ -2,6 +2,8 @@ package dev.faaji.streams.service;
 
 import dev.faaji.streams.api.v1.domain.User;
 import dev.faaji.streams.api.v1.domain.UserMatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -10,6 +12,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class UserMatchStreamProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(UserMatchStreamProcessor.class);
 
     private final Map<String, Integer> roundMap = new ConcurrentHashMap<>();
     private final Map<String, SortedSet<UserMatch>> eventMap = new HashMap<>();
@@ -26,6 +29,7 @@ public class UserMatchStreamProcessor {
                 result = createMatchQueue(availableUsers, eventId);
                 round--;
             } catch (Exception e) {
+                LOG.error("failed to get matches because" + e.getMessage());
                 break;
             }
         }

@@ -83,7 +83,7 @@ public class RoomRecommender {
 
     private FaajiRoom[] getRoomsForEvent(String eventId) {
         return webClient.get()
-                .uri("/rooms?eventId=%s".formatted(eventId))
+                .uri("/rooms?partyId=%s".formatted(eventId))
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<FaajiRoom[]>() {})
                 .onErrorReturn(new FaajiRoom[0])
