@@ -1,6 +1,7 @@
 package dev.faaji.streams.events.processor;
 
 import dev.faaji.streams.api.v1.domain.UserRegistration;
+import dev.faaji.streams.api.v1.response.ApiResponse;
 import dev.faaji.streams.api.v1.response.RoomRecommendationResponse;
 import dev.faaji.streams.model.FaajiRoom;
 import dev.faaji.streams.util.KeyUtils;
@@ -19,7 +20,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.util.*;
 import java.util.function.Function;
@@ -48,8 +48,8 @@ public class RoomRecommender {
             String room = recommendRoom(userRegistration.interests(), getRoomsForEvent(userRegistration.eventId()));
             String updatedKey = KeyUtils.merge(userRegistration.eventId(), userRegistration.userId());
             return new KeyValue<>(updatedKey, new RoomRecommendationResponse(
-                    userRegistration.userId(),
                     userRegistration.eventId(),
+                    userRegistration.userId(),
                     room
             ));
         }).toTable(Named.as(RECOMMENDER_TABLE_NAME), Materialized.<String, RoomRecommendationResponse, KeyValueStore<Bytes, byte[]>>as(USER_ROOM_STORE)
@@ -85,20 +85,21 @@ public class RoomRecommender {
 
     private FaajiRoom[] getRoomsForEvent(String eventId) {
         LOG.info("finding rooms for event {}", eventId);
-        List<FaajiRoom> partyId = webClient.get()
-                .uri(new DefaultUriBuilderFactory().builder().path("/rooms")
+        var rooms = webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/rooms")
                         .queryParam("partyId", eventId)
                         .build())
-                .exchangeToFlux(clientResponse -> clientResponse.bodyToFlux(FaajiRoom.class))
+                .exchangeToMono(clientResponse -> clientResponse.bodyToMono(new ParameterizedTypeReference<ApiResponse<FaajiRoom[]>>() {}))
+                .map(ApiResponse::data)
+                .doOnNext(faajiRoom -> LOG.info("recieved {} rooms", faajiRoom.length))
                 .doOnError(throwable -> LOG.error("error fetching rooms: {}", throwable.getMessage()))
-                .collectList()
-                .onErrorReturn(List.of())
                 .block();
-        if (partyId == null) {
+
+        if (rooms == null) {
             LOG.info("could not find rooms");
             return new FaajiRoom[0];
         }
-        FaajiRoom[] rooms = partyId.toArray(new FaajiRoom[0]);
+
         LOG.info("found rooms {}", Arrays.toString(rooms));
         return rooms;
     }
