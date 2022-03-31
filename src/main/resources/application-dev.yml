@@ -23,6 +23,9 @@ spring:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
           destination: valentine-user-registration
         userinterest-out-0.destination: valentine-user-index
+        room-recommender-in-0:
+          consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
+          destination: UserRooms
       kafka.streams:
         binder:
           auto-create-topics: false
@@ -41,7 +44,7 @@ spring:
             userregister.applicationId: ${spring.application.name}-processor-3
             userinterest.applicationId: ${spring.application.name}-processor-4
     function:
-      definition: partyinit;userregister;userinterest;input
+      definition: partyinit;userregister;userinterest;input;room-recommender
   kafka:
     bootstrap-servers: pkc-41wq6.eu-west-2.aws.confluent.cloud:9092
     producer:
@@ -60,3 +63,7 @@ spring:
       replication-factor: 3
   application:
     name: PaymentStreamProcessor
+
+faaji:
+  api:
+    url: ${FAAJI_API_URL}

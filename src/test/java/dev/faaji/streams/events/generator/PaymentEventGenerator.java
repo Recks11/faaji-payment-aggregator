@@ -9,14 +9,14 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 
-public class TopologyTestDriverEventGenerator extends AbstractPaymentEventGenerator {
+public class PaymentEventGenerator extends AbstractPaymentEventGenerator {
 
     private final TopologyTestDriver topologyTestDriver;
     private TestInputTopic<String, PaymentUpdateEvent> testInputTopic;
     private TestOutputTopic<String, TotalView> testOutputTopic;
 
 
-    public TopologyTestDriverEventGenerator(TopologyTestDriver topologyTestDriver) {
+    public PaymentEventGenerator(TopologyTestDriver topologyTestDriver) {
         this.topologyTestDriver = topologyTestDriver;
     }
 

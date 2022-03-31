@@ -1,6 +1,6 @@
 package dev.faaji.streams.events.processor;
 
-import dev.faaji.streams.events.generator.TopologyTestDriverEventGenerator;
+import dev.faaji.streams.events.generator.PaymentEventGenerator;
 import dev.faaji.streams.model.Events;
 import dev.faaji.streams.model.Payment;
 import dev.faaji.streams.model.PaymentUpdateEvent;
@@ -76,7 +76,7 @@ public class PaymentAggregatorUnitTest extends AbstractKafkaStreamTest {
         LOG.debug(topology.describe().toString());
 
 
-        TopologyTestDriverEventGenerator eventGenerator = new TopologyTestDriverEventGenerator(testDriver);
+        PaymentEventGenerator eventGenerator = new PaymentEventGenerator(testDriver);
 
         eventGenerator.configureInputTopic(StreamBindings.INPUT_BINDING_IN_DESTINATION, keySerde.serializer(),
                 updateEventSerde.serializer());
