@@ -31,7 +31,9 @@ public class PaymentAggregator implements PaymentStreamProcessor<String, TotalVi
     @Bean(StreamBindings.INPUT_BINDING)
     public Function<KStream<String, PaymentUpdateEvent>,
             KTable<String, TotalView>> process() {
-        return event -> event.map((key, value) -> eventProcessor.process(KeyValue.pair(key, value)))
+        return event -> event
+                .filter((key, value) -> value.getData() != null && value.getType() != null)
+                .map((key, value) -> eventProcessor.process(KeyValue.pair(key, value)))
                 .groupBy((key, value) -> String.valueOf(value.partyId()), Grouped.with(null, new JsonSerde<>(TotalView.class)))
                 .reduce((v1, v2) -> {
                     var total = v1.total().add(v2.total());
