@@ -34,7 +34,7 @@ public class KafkaTopicConfiguration {
     @Value("${spring.cloud.stream.bindings.room-recommender-out-0.destination}")
     private String userRecommenderOutTopic;
 
-    @Value(value = "${kafka.bootstrapServers:localhost:9092}")
+    @Value(value = "${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
     @Bean
