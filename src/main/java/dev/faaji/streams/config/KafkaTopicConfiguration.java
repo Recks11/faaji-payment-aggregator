@@ -38,15 +38,6 @@ public class KafkaTopicConfiguration {
     private String bootstrapServers;
 
     @Bean
-    public KafkaAdmin kafkaAdmin() {
-        Map<String, Object> configs = new HashMap<>();
-        // Depending on you Kafka Cluster setup you need to configure
-        // additional properties!
-        configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        return new KafkaAdmin(configs);
-    }
-
-    @Bean
     public NewTopic inputTopic() {
         return TopicBuilder.name(inputInTopic)
                 .partitions(1)

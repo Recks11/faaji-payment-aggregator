@@ -60,7 +60,7 @@ spring:
       security.protocol: SASL_SSL
       sasl.mechanism: PLAIN
       bootstrap.servers: ${KAFKA_SERVER}
-      jaas.config: "org.apache.kafka.common.security.plain.PlainLoginModule required username='${CLUSTER_API_KEY}' password='${CLUSTER_API_SECRET}'"
+      sasl.jaas.config: "org.apache.kafka.common.security.plain.PlainLoginModule required username='${CLUSTER_API_KEY}' password='${CLUSTER_API_SECRET}'"
     jaas:
       enabled: true
       login-module: org.apache.kafka.common.security.plain.PlainLoginModule
