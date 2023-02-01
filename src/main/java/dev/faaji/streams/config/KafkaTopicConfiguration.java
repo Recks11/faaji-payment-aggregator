@@ -50,7 +50,6 @@ public class KafkaTopicConfiguration {
     public NewTopic inputTopic() {
         return TopicBuilder.name(inputInTopic)
                 .partitions(1)
-                .replicas(1)
                 .compact()
                 .build();
     }
@@ -59,63 +58,54 @@ public class KafkaTopicConfiguration {
     public NewTopic inputOut() {
         return TopicBuilder.name(inputOutTopic)
                 .partitions(1)
-                .replicas(1)
                 .build();
     }
     @Bean
     public NewTopic partyInitTopic() {
         return TopicBuilder.name(partyInitInTopic)
                 .partitions(1)
-                .replicas(1)
                 .build();
     }
     @Bean
     public NewTopic partyInitTopicOut() {
         return TopicBuilder.name(partyInitOutTopic)
                 .partitions(1)
-                .replicas(1)
                 .build();
     }
     @Bean
     public NewTopic userRegIn() {
         return TopicBuilder.name(userRegisterInTopic)
                 .partitions(1)
-                .replicas(1)
                 .build();
     }
     @Bean
     public NewTopic userRegOut() {
         return TopicBuilder.name(userRegisterOutTopic)
                 .partitions(1)
-                .replicas(1)
                 .build();
     }
     @Bean
     public NewTopic userIntsIn() {
         return TopicBuilder.name(userInterestInTopic)
                 .partitions(1)
-                .replicas(1)
                 .build();
     }
     @Bean
     public NewTopic userIntsOut() {
         return TopicBuilder.name(userInterestOutTopic)
                 .partitions(1)
-                .replicas(1)
                 .build();
     }
     @Bean
     public NewTopic userRecIn() {
         return TopicBuilder.name(userRecommenderInTopic)
                 .partitions(1)
-                .replicas(1)
                 .build();
     }
     @Bean
     public NewTopic userRecOut() {
         return TopicBuilder.name(userRecommenderOutTopic)
                 .partitions(1)
-                .replicas(1)
                 .build();
     }
 }
