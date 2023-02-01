@@ -15,11 +15,13 @@ spring:
         partyinit-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$PartySerde
           destination: valentine-events
-        partyinit-out-0.destination: valentine-event-index
+        partyinit-out-0:
+          destination: valentine-event-index
         userregister-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
           destination: valentine-user-registration
-        userregister-out-0.destination: valentine-event-index
+        userregister-out-0:
+          destination: valentine-event-index
         userinterest-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
           destination: valentine-user-registration

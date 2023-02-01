@@ -10,22 +10,28 @@ spring:
         input-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$PaymentUpdateSerde
           destination: FaajiEventPayments
-        input-out-0.destination: FaajiPaymentTotals
+        input-out-0:
+          destination: FaajiPaymentTotals
         partyinit-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$PartySerde
-          destination: valentines-parties
-        partyinit-out-0.destination: valentines-event-index
+          destination: valentine-events
+        partyinit-out-0:
+          destination: valentine-event-index
         userregister-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
           destination: valentine-user-registration
-        userregister-out-0.destination: valentines-event-index
+        userregister-out-0:
+          destination: valentine-event-index
         userinterest-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
           destination: valentine-user-registration
-        userinterest-out-0.destination: valentine-user-index
+        userinterest-out-0:
+          destination: valentine-user-index
         room-recommender-in-0:
           consumer.valueSerde: dev.faaji.streams.config.KafkaStreamsConfig$UserRegSerde
-          destination: UserRooms
+          destination: FaajiEventRegistration
+        room-recommender-out-0:
+          destination: FaajiUserRooms
       kafka.streams:
         binder:
           auto-create-topics: false
@@ -46,21 +52,12 @@ spring:
     function:
       definition: partyinit;userregister;userinterest;input;room-recommender
   kafka:
-    bootstrap-servers: pkc-41wq6.eu-west-2.aws.confluent.cloud:9092
+    bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringDeserializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    properties:
-      security.protocol: SASL_SSL
-      sasl.mechanism: PLAIN
-    jaas:
-      enabled: true
-      login-module: org.apache.kafka.common.security.plain.PlainLoginModule
-      options:
-        username: ${CLUSTER_API_KEY}
-        password: ${CLUSTER_API_SECRET}
     streams:
-      replication-factor: 3
+      replication-factor: 1
   application:
     name: PaymentStreamProcessor
 
